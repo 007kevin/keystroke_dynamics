@@ -11,9 +11,9 @@ import weka.core.Instances;
 
 
 public class WekaArff {
-    private Connection conn = null;
-    private static final String url = "jdbc:sqlite:raw_data.db";
-    private static final String[] keys = {
+    private Connection CONN = null;
+    private static final String URL = "jdbc:sqlite:../raw_data.db";
+    private static final String[] KEYS = {
         "holdtime1",
         "holdtime2",
         "holdtime3",
@@ -89,7 +89,7 @@ public class WekaArff {
     
     public void connect() {
         try {
-            conn = DriverManager.getConnection(url);
+            CONN = DriverManager.getConnection(URL);
             System.out.println("Connection to SQLite has been established.");
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -98,8 +98,8 @@ public class WekaArff {
     
     public void close() {
         try {
-            if (conn != null) {
-                conn.close();
+            if (CONN != null) {
+                CONN.close();
             }
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
@@ -135,7 +135,7 @@ public class WekaArff {
             ")";
         
         try {
-            conn.createStatement().execute(sql);
+            CONN.createStatement().execute(sql);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
@@ -182,7 +182,7 @@ public class WekaArff {
             "DEVICE_CURRENT_DATE_TIME_ZERO_GMT, " +
             "ACTION_TIME_STAMP";
         try {
-            ResultSet rs = conn.createStatement().executeQuery(sql);
+            ResultSet rs = CONN.createStatement().executeQuery(sql);
             while (!rs.isAfterLast()){
                 // An array of raw entries representing the user's session
                 Vector<RawEntry> S = new Vector<RawEntry>();
@@ -193,7 +193,6 @@ public class WekaArff {
                 }
                 System.out.println(S.size());
                 HashMap<String, Double> H = extractFeatures(S);
-                break;
             }
         }
         catch (SQLException e) {
@@ -203,8 +202,9 @@ public class WekaArff {
 
     private HashMap<String, Double> extractFeatures(Vector<RawEntry> S){
         HashMap<String, Double> H = new HashMap<String, Double>();
-        for (String k : keys)
+        for (String k : KEYS)
             H.put(k,0.0);
+        
         return H;
     }
 
