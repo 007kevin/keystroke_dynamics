@@ -9,10 +9,9 @@ import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
 
-
 public class WekaArff {
     private Connection CONN = null;
-    private static final String URL = "jdbc:sqlite:../raw_data.db";
+    private static final String URL = "jdbc:sqlite:raw_data.db";
     private static final String[] KEYS = {
         "holdtime1",
         "holdtime2",
