@@ -1,5 +1,5 @@
 import java.util.Vector;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -13,77 +13,54 @@ public class WekaArff {
     private Connection CONN = null;
     private static final String URL = "jdbc:sqlite:raw_data.db";
     private static final String[] KEYS = {
-        "holdtime1",
-        "holdtime2",
-        "holdtime3",
-        "holdtime4",
-        "holdtime5",
-        "holdtime6",
-        "holdtime7",
-        "holdtime8",
-        "holdtime9",
-        "holdtime10",
-        "holdtime11",
-        "holdtime12",
-        "holdtime13",
-        "holdtime14",
-        "downdown1",
-        "downdown2",
-        "downdown3",
-        "downdown4",
-        "downdown5",
-        "downdown6",
-        "downdown7",
-        "downdown8",
-        "downdown9",
-        "downdown10",
-        "downdown11",
-        "downdown12",
-        "downdown13",
-        "updown1",
-        "updown2",
-        "updown3",
-        "updown4",
-        "updown5",
-        "updown6",
-        "updown7",
-        "updown8",
-        "updown9",
-        "updown10",
-        "updown11",
-        "updown12",
-        "updown13",
-        "pressure1",
-        "pressure2",
-        "pressure3",
-        "pressure4",
-        "pressure5",
-        "pressure6",
-        "pressure7",
-        "pressure8",
-        "pressure9",
-        "pressure10",
-        "pressure11",
-        "pressure12",
-        "pressure13",
-        "pressure14",
-        "fingerarea1",
-        "fingerarea2",
-        "fingerarea3",
-        "fingerarea4",
-        "fingerarea5",
-        "fingerarea6",
-        "fingerarea7",
-        "fingerarea8",
-        "fingerarea9",
-        "fingerarea10",
-        "fingerarea11",
-        "fingerarea12",
-        "fingerarea13",
-        "fingerarea14",
-        "meanholdtime",
-        "meanpressure",
+        "holdtime1"    , "holdtime2", "holdtime3", "holdtime4", "holdtime5",
+        "holdtime6"    , "holdtime7", "holdtime8", "holdtime9", "holdtime10",
+        "holdtime11"   , "holdtime12", "holdtime13", "holdtime14", "downdown1",
+        "downdown2"    , "downdown3", "downdown4", "downdown5", "downdown6",
+        "downdown7"    , "downdown8", "downdown9", "downdown10", "downdown11",
+        "downdown12"   , "downdown13", "updown1", "updown2", "updown3",
+        "updown4"      , "updown5", "updown6", "updown7", "updown8",
+        "updown9"      , "updown10", "updown11", "updown12", "updown13",
+        "pressure1"    , "pressure2", "pressure3", "pressure4", "pressure5",
+        "pressure6"    , "pressure7", "pressure8", "pressure9", "pressure10",
+        "pressure11"   , "pressure12", "pressure13", "pressure14", "fingerarea1",
+        "fingerarea2"  , "fingerarea3", "fingerarea4", "fingerarea5", "fingerarea6",
+        "fingerarea7"  , "fingerarea8", "fingerarea9", "fingerarea10", "fingerarea11",
+        "fingerarea12" , "fingerarea13", "fingerarea14", "meanholdtime", "meanpressure",
         "meanfingerarea"
+    };
+
+    // Store sequence of actions and types for
+    // typing valid password
+    private static final String[][] PASSWORD = {
+        {"."        ,"Down"  },
+        {"."        ,"Up"    },
+        {"LETTERS"  ,"Down"  },
+        {"NUMBERS"  ,"Up"    },
+        {"t"        ,"Down"  },
+        {"t"        ,"Up"    },
+        {"i"        ,"Down"  },
+        {"i"        ,"Up"    },
+        {"e"        ,"Down"  },
+        {"e"        ,"Up"    },
+        {"LETTERS"  ,"Down"  },
+        {"NUMBERS"  ,"Up"    },
+        {"5"        ,"Down"  },
+        {"5"        ,"Up"    },
+        {"LETTERS"  ,"Down"  },
+        {"NUMBERS"  ,"Up"    },
+        {"SHIFT"    ,"Down"  },
+        {"SHIFT"    ,"Up"    },
+        {"R"        ,"Down"  },
+        {"r"        ,"Up"    },
+        {"o"        ,"Down"  },
+        {"o"        ,"Up"    },
+        {"a"        ,"Down"  },
+        {"a"        ,"Up"    },
+        {"n"        ,"Down"  },
+        {"n"        ,"Up"    },
+        {"l"        ,"Down"  },
+        {"l"        ,"Up"    }
     };
     
     public void connect() {
@@ -147,13 +124,6 @@ public class WekaArff {
         public int actiontime;
         public int datetime;
         
-        public RawEntry(String u, String b, String t, int a, int d){
-            uuid = u;
-            button = b;
-            type = t;
-            actiontime = a;
-            datetime = d;
-        }
         public RawEntry(ResultSet rs){
             try {
             uuid = rs.getString("DEVICE_UUID");
@@ -183,7 +153,7 @@ public class WekaArff {
         try {
             ResultSet rs = CONN.createStatement().executeQuery(sql);
             while (!rs.isAfterLast()){
-                // An array of raw entries representing the user's session
+                // An array of raw entries representing the user's single session
                 Vector<RawEntry> S = new Vector<RawEntry>();
                 while (rs.next() &&
                        (S.isEmpty() || rs.getString("DEVICE_UUID").equals(S.lastElement().uuid)) &&
@@ -191,7 +161,8 @@ public class WekaArff {
                     S.addElement(new RawEntry(rs));
                 }
                 System.out.println(S.size());
-                HashMap<String, Double> H = extractFeatures(S);
+                LinkedHashMap<String, Double> H = extractFeatures(S);
+                break;
             }
         }
         catch (SQLException e) {
@@ -199,12 +170,30 @@ public class WekaArff {
         }
     }
 
-    private HashMap<String, Double> extractFeatures(Vector<RawEntry> S){
-        HashMap<String, Double> H = new HashMap<String, Double>();
-        for (String k : KEYS)
-            H.put(k,0.0);
-        
+    // LinkedListHashMap keeps order of insertion
+    private LinkedHashMap<String, Double> extractFeatures(Vector<RawEntry> S){
+        LinkedHashMap<String, Double> H = new LinkedHashMap<String, Double>();
+        holdtime(H,S);
         return H;
+    }
+
+    private void holdtime(LinkedHashMap<String, Double> H, Vector<RawEntry> S){
+        // Copy of original session for removing unneeded information for holdtime
+        Vector<RawEntry> ht;
+        int counter = 0;
+        for (int i = 0; i < S.size(); ++i){
+            
+            for (String key : PASSWORD[counter]){
+                if (S[i].button == key && S[i].type == type){
+                    
+            }
+        }
+    }
+
+    public void printPass(){
+        for (String[] array : PASSWORD)
+            for (String action : array)
+                System.out.println(action);
     }
 
     public static void main(String[] args){
@@ -212,6 +201,7 @@ public class WekaArff {
         db.connect();
         db.createTableIfNotExist("data");
         db.formatRawData();
+        db.printPass();
         db.close();
     }
 }
