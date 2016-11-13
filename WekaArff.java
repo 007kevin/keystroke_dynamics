@@ -1,6 +1,8 @@
 import java.util.Vector;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -295,6 +297,25 @@ public class WekaArff {
 
     private void writeToArff(LinkedHashMap<String, Vector<LinkedHashMap<String,Double>>> Data,
                              String filename){
+        if (Data.isEmpty()) return;
+
+        // 1. Set up attributes
+        FastVector atts;
+        Instances  arff_data;
+        Set<String> uuids       = Data.keySet();
+        Set<String> attributes = Data.get(uuids.iterator().next()).firstElement().keySet();
+
+        atts = new FastVector();
+        for (String a : attributes)
+            atts.addElement(new Attribute(a));
+        atts.addElement(new Attribute("user_id", new ArrayList<String>(attributes)));
+
+        // 2. create Instance objects
+        
+        
+        
+        
+        
         System.out.println("Writing out to " + filename + ".arff");
 
     }
