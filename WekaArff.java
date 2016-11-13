@@ -9,6 +9,9 @@ import java.sql.ResultSet;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
+import weka.core.converters.ArffSaver;
+import java.io.File;
+import java.io.IOException;
 
 public class WekaArff {
     private Connection CONN = null;
@@ -180,11 +183,6 @@ public class WekaArff {
                 updown(H,Filtered);
                 pressure(H,Filtered);
                 fingerarea(H,Filtered);
-                // for (Map.Entry<String, Double> e : H.entrySet()){
-                //     String key   = e.getKey();
-                //     Double value = e.getValue();
-                //     System.out.println(key + " " + value);
-                // }
                 insertDatum(Data,H,Filtered.get(0).uuid);
             }
         }
@@ -193,7 +191,6 @@ public class WekaArff {
         }
 
         writeToArff(Data,"formatted_data");
-        System.out.println(Data.size());
     }
 
 
@@ -319,7 +316,6 @@ public class WekaArff {
         data = new Instances("keystroketouch", atts, 0);
         
         // 3. fill with data
-        outerloop:
         for (Map.Entry<String, ArrayList<LinkedHashMap<String,Double>>> e : D.entrySet()){
             String user   = e.getKey();
             for (LinkedHashMap<String,Double> session : e.getValue()){
@@ -328,15 +324,19 @@ public class WekaArff {
                 for (Map.Entry<String,Double> datum : session.entrySet()){
                     vals[c++] = datum.getValue();
                 }
-                vals[c++] = data.attribute(data.numAttributes()-1).addStringValue(user);
-                System.out.println(data.attribute(3).addStringValue(user));
+                vals[c] = attVals.indexOf(user);
                 data.add(new DenseInstance(1.0, vals));
-                break outerloop;
             }
         }
-        
-        System.out.println(data);
 
+        ArffSaver saver = new ArffSaver();
+        saver.setInstances(data);
+        try {
+            saver.setFile(new File("./"+filename+".arff"));
+            saver.writeBatch();
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
     }
 
     
