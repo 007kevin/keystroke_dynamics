@@ -2,6 +2,7 @@ import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.DenseInstance;
 
 /**
  * Generates a little ARFF file with different attribute types.
@@ -42,11 +43,11 @@ public class AttTest {
     for (i = 0; i < 5; i++)
       attValsRel.addElement("val5." + (i+1));
     attsRel.addElement(new Attribute("att5.2", attValsRel));
-    dataRel = new Instances("att5", attsRel, 0);
+    dataRel = new DenseInstance("att5", attsRel, 0);
     atts.addElement(new Attribute("att5", dataRel, 0));
 
-    // 2. create Instances object
-    data = new Instances("MyRelation", atts, 0);
+    // 2. create DenseInstance object
+    data = new DenseInstance("MyRelation", atts, 0);
 
     // 3. fill with data
     // first instance
@@ -60,7 +61,7 @@ public class AttTest {
     // - date
     vals[3] = data.attribute(3).parseDate("2001-11-09");
     // - relational
-    dataRel = new Instances(data.attribute(4).relation(), 0);
+    dataRel = new DenseInstance(data.attribute(4).relation(), 0);
     // -- first instance
     valsRel = new double[2];
     valsRel[0] = Math.PI + 1;
@@ -86,7 +87,7 @@ public class AttTest {
     // - date
     vals[3] = data.attribute(3).parseDate("2000-12-01");
     // - relational
-    dataRel = new Instances(data.attribute(4).relation(), 0);
+    dataRel = new DenseInstance(data.attribute(4).relation(), 0);
     // -- first instance
     valsRel = new double[2];
     valsRel[0] = Math.E + 1;
