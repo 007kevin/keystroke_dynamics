@@ -7,8 +7,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import weka.core.Attribute;
-import weka.core.FastVector;
-import weka.core.Instance;
+import weka.core.DenseInstance;
 import weka.core.Instances;
 
 public class WekaArff {
@@ -294,22 +293,49 @@ public class WekaArff {
             H.put("meanfingerarea",mean/item);        
     }
 
-    private void writeToArff(LinkedHashMap<String, ArrayList<LinkedHashMap<String,Double>>> Data,
+    private void writeToArff(LinkedHashMap<String, ArrayList<LinkedHashMap<String,Double>>> D,
                              String filename){
-        if (Data.isEmpty()) return;
-
+        if (D.isEmpty()) return;
+        ArrayList<Attribute> atts;
+        ArrayList<String> attVals;
+        Instances data;
+        double[]  vals;
+        
         // 1. Set up attributes
-        Set<String> uuids       = Data.keySet();
-        Set<String> attributes = Data.get(uuids.iterator().next()).get(0).keySet();
-        
+        atts = new ArrayList<Attribute>();
+        Set<String> uuids       = D.keySet();
+        Set<String> attributes = D.get(uuids.iterator().next()).get(0).keySet();
 
+        // -numeric
+        for (String a : attributes)
+            atts.add(new Attribute(a));
+        // -nominal
+        attVals = new ArrayList<String>();
+        for (String id : uuids)
+            attVals.add(id);
+        atts.add(new Attribute("user_id", attVals));
+        
         // 2. create Instance objects
+        data = new Instances("keystroketouch", atts, 0);
         
+        // 3. fill with data
+        outerloop:
+        for (Map.Entry<String, ArrayList<LinkedHashMap<String,Double>>> e : D.entrySet()){
+            String user   = e.getKey();
+            for (LinkedHashMap<String,Double> session : e.getValue()){
+                vals = new double[data.numAttributes()];
+                int c = 0;
+                for (Map.Entry<String,Double> datum : session.entrySet()){
+                    vals[c++] = datum.getValue();
+                }
+                vals[c++] = data.attribute(data.numAttributes()-1).addStringValue(user);
+                System.out.println(data.attribute(3).addStringValue(user));
+                data.add(new DenseInstance(1.0, vals));
+                break outerloop;
+            }
+        }
         
-        
-        
-        
-        System.out.println("Writing out to " + filename + ".arff");
+        System.out.println(data);
 
     }
 
