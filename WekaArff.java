@@ -16,24 +16,7 @@ import java.io.IOException;
 public class WekaArff {
     private Connection CONN = null;
     private static final String URL = "jdbc:sqlite:raw_data.db";
-    private static final String[] KEYS = {
-        "holdtime1"    , "holdtime2", "holdtime3", "holdtime4", "holdtime5",
-        "holdtime6"    , "holdtime7", "holdtime8", "holdtime9", "holdtime10",
-        "holdtime11"   , "holdtime12", "holdtime13", "holdtime14", "downdown1",
-        "downdown2"    , "downdown3", "downdown4", "downdown5", "downdown6",
-        "downdown7"    , "downdown8", "downdown9", "downdown10", "downdown11",
-        "downdown12"   , "downdown13", "updown1", "updown2", "updown3",
-        "updown4"      , "updown5", "updown6", "updown7", "updown8",
-        "updown9"      , "updown10", "updown11", "updown12", "updown13",
-        "pressure1"    , "pressure2", "pressure3", "pressure4", "pressure5",
-        "pressure6"    , "pressure7", "pressure8", "pressure9", "pressure10",
-        "pressure11"   , "pressure12", "pressure13", "pressure14", "fingerarea1",
-        "fingerarea2"  , "fingerarea3", "fingerarea4", "fingerarea5", "fingerarea6",
-        "fingerarea7"  , "fingerarea8", "fingerarea9", "fingerarea10", "fingerarea11",
-        "fingerarea12" , "fingerarea13", "fingerarea14", "meanholdtime", "meanpressure",
-        "meanfingerarea"
-    };
-
+    
     // Store sequence of actions and types for
     // typing valid password
     private static final String[][] PASSWORD = {
@@ -160,7 +143,9 @@ public class WekaArff {
             "DEVICE_CURRENT_DATE_TIME_ZERO_GMT, " +
             "ACTION_TIME_STAMP";
 
-        // Data will hold all user's calculated data to be written out to ARFF
+        // Data will hold all user's calculated data to be written out to ARFF.
+        // Key value pairs are:
+        // K:User UUID, V:All user sessions
         LinkedHashMap<String, ArrayList<LinkedHashMap<String,Double>>> Data =
             new LinkedHashMap<String, ArrayList<LinkedHashMap<String,Double>>>();        
         try {
@@ -175,7 +160,10 @@ public class WekaArff {
                 }
                 // LinkedHashMap keeps order of insertion
                 LinkedHashMap<String, Double> H = new LinkedHashMap<String, Double>();
-                ArrayList<RawEntry> Filtered = filter(S, false);
+                ArrayList<RawEntry> Filtered = filter(S, true);
+                for (RawEntry e : Filtered)
+                    System.out.printf("%s\t%s\t%d\n",e.key,e.type,(int)e.actiontime);
+
                 // Skip corrupted session data
                 if (Filtered.isEmpty()) continue;
                 holdtime(H,Filtered);
@@ -184,6 +172,7 @@ public class WekaArff {
                 pressure(H,Filtered);
                 fingerarea(H,Filtered);
                 insertDatum(Data,H,Filtered.get(0).uuid);
+                return;
             }
         }
         catch (SQLException e) {
@@ -195,7 +184,7 @@ public class WekaArff {
 
 
     // Add calculated session dataum to an exisiting user and if
-    // user key doesn't already exist Data, create key value pair
+    // user key doesn't already exist Data, create new key value pair
     // with empty vector
     private void insertDatum(LinkedHashMap<String, ArrayList<LinkedHashMap<String,Double>>> Data,
                              LinkedHashMap<String, Double> H,
@@ -215,14 +204,36 @@ public class WekaArff {
     private ArrayList<RawEntry> filter(ArrayList<RawEntry> S, Boolean offset){
         ArrayList<RawEntry> Filtered = new ArrayList<RawEntry>();
         int counter = 0;
-        for (int i = 0; i < S.size(); ++i){
-            if (counter >= PASSWORD.length) break;
-            String key  = PASSWORD[counter][0];
-            String type = PASSWORD[counter][1];
-            RawEntry e  = S.get(i);
-            if (key.equals(e.key) && type.equals(e.type)){
-                Filtered.add(e);
-                counter++;
+        if (offset){
+            int o_val = 0;
+            int o_cnt = 0;
+            for (int i = 0; i < S.size(); ++i){
+                if (counter >= PASSWORD.length) break;
+                String key  = PASSWORD[counter][0];
+                String type = PASSWORD[counter][1];
+                RawEntry e  = S.get(i);
+                if (!key.equals(e.key)){
+                    o_cnt++;
+                }
+                if (key.equals(e.key) && type.equals(e.type)){
+                    o_val+=e.actiontime-S.get(i-o_cnt).actiontime;
+                    e.actiontime-=o_val;
+                    Filtered.add(e);
+                    counter++;
+                    o_cnt = 0;
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < S.size(); ++i){
+                if (counter >= PASSWORD.length) break;
+                String key  = PASSWORD[counter][0];
+                String type = PASSWORD[counter][1];
+                RawEntry e  = S.get(i);
+                if (key.equals(e.key) && type.equals(e.type)){
+                    Filtered.add(e);
+                    counter++;
+                }
             }
         }
         // Skip user session with missing data points by
