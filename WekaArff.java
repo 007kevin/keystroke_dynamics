@@ -161,8 +161,6 @@ public class WekaArff {
                 // LinkedHashMap keeps order of insertion
                 LinkedHashMap<String, Double> H = new LinkedHashMap<String, Double>();
                 ArrayList<RawEntry> Filtered = filter(S, true);
-                for (RawEntry e : Filtered)
-                    System.out.printf("%s\t%s\t%d\n",e.key,e.type,(int)e.actiontime);
 
                 // Skip corrupted session data
                 if (Filtered.isEmpty()) continue;
@@ -172,7 +170,6 @@ public class WekaArff {
                 pressure(H,Filtered);
                 fingerarea(H,Filtered);
                 insertDatum(Data,H,Filtered.get(0).uuid);
-                return;
             }
         }
         catch (SQLException e) {
