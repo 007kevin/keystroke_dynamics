@@ -1,5 +1,6 @@
 import java.util.Vector;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -43,8 +44,8 @@ public class WekaArff {
         {"i"        ,"Up"    },
         {"e"        ,"Down"  },
         {"e"        ,"Up"    },
-        {"LETTERS"  ,"Down"  },
-        {"NUMBERS"  ,"Up"    },
+        {"NUMBERS"  ,"Down"  },
+        {"LETTERS"  ,"Up"    },
         {"5"        ,"Down"  },
         {"5"        ,"Up"    },
         {"LETTERS"  ,"Down"  },
@@ -119,20 +120,24 @@ public class WekaArff {
 
     private class RawEntry {
         public String uuid;
-        public String button;
+        public String key;
         public String type;
-        public int actiontime;
-        public int datetime;
+        public double touch_pressure;
+        public double touch_size;
+        public double actiontime;
+        public double datetime;
         
         public RawEntry(ResultSet rs){
             try {
-            uuid = rs.getString("DEVICE_UUID");
-            button = rs.getString("BUTTON_PRESSED");
-            type = rs.getString("ACTION_TYPE");
-            actiontime = rs.getInt("ACTION_TIME_STAMP");
-            datetime = rs.getInt("DEVICE_CURRENT_DATE_TIME_ZERO_GMT");
+                uuid = rs.getString("DEVICE_UUID");
+                key = rs.getString("BUTTON_PRESSED");
+                type = rs.getString("ACTION_TYPE");
+                touch_pressure = rs.getDouble("TOUCH_PRESSURE");
+                touch_size = rs.getDouble("TOUCH_SIZE");
+                actiontime = rs.getDouble("ACTION_TIME_STAMP");
+                datetime = rs.getDouble("DEVICE_CURRENT_DATE_TIME_ZERO_GMT");
             }
-            catch (SQLException e) {
+            catch (SQLException e){
                 System.out.println(e.getMessage());
             }
         }
@@ -143,13 +148,18 @@ public class WekaArff {
             "DEVICE_UUID, " +
             "DEVICE_CURRENT_DATE_TIME_ZERO_GMT, " +
             "BUTTON_PRESSED, " +
+            "TOUCH_PRESSURE, " +
+            "TOUCH_SIZE, " +            
             "ACTION_TYPE, " +
             "ACTION_TIME_STAMP " +
             "from data " +
-            "where DEVICE_UUID = 'GWIHW1476465997505' " +
             "order by DEVICE_UUID, " +
             "DEVICE_CURRENT_DATE_TIME_ZERO_GMT, " +
             "ACTION_TIME_STAMP";
+
+        // Data will hold all user's calculated data to be written out to ARFF
+        LinkedHashMap<String, Vector<LinkedHashMap<String,Double>>> Data =
+            new LinkedHashMap<String, Vector<LinkedHashMap<String,Double>>>();        
         try {
             ResultSet rs = CONN.createStatement().executeQuery(sql);
             while (!rs.isAfterLast()){
@@ -160,48 +170,142 @@ public class WekaArff {
                        (S.isEmpty() || rs.getInt("DEVICE_CURRENT_DATE_TIME_ZERO_GMT") == S.lastElement().datetime)){
                     S.addElement(new RawEntry(rs));
                 }
-                System.out.println(S.size());
-                LinkedHashMap<String, Double> H = extractFeatures(S);
-                break;
+                // LinkedHashMap keeps order of insertion
+                LinkedHashMap<String, Double> H = new LinkedHashMap<String, Double>();
+                Vector<RawEntry> Filtered = filter(S, false);
+                // Skip corrupted session data
+                if (Filtered.isEmpty()) continue;
+                holdtime(H,Filtered);
+                downdown(H,Filtered);
+                updown(H,Filtered);
+                pressure(H,Filtered);
+                fingerarea(H,Filtered);
+                // for (Map.Entry<String, Double> e : H.entrySet()){
+                //     String key   = e.getKey();
+                //     Double value = e.getValue();
+                //     System.out.println(key + " " + value);
+                // }
+                insertDatum(Data,H,Filtered.firstElement().uuid);
             }
         }
         catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+
+        writeToArff(Data,"formatted_data");
+        System.out.println(Data.size());
     }
 
-    // LinkedListHashMap keeps order of insertion
-    private LinkedHashMap<String, Double> extractFeatures(Vector<RawEntry> S){
-        LinkedHashMap<String, Double> H = new LinkedHashMap<String, Double>();
-        holdtime(H,S);
-        return H;
-    }
 
-    private void holdtime(LinkedHashMap<String, Double> H, Vector<RawEntry> S){
-        // Copy of original session for removing unneeded information for holdtime
-        Vector<RawEntry> ht;
-        int counter = 0;
-        for (int i = 0; i < S.size(); ++i){
-            
-            for (String key : PASSWORD[counter]){
-                if (S[i].button == key && S[i].type == type){
-                    
-            }
+    // Add calculated session dataum to an exisiting user and if
+    // user key doesn't already exist Data, create key value pair
+    // with empty vector
+    private void insertDatum(LinkedHashMap<String, Vector<LinkedHashMap<String,Double>>> Data,
+                             LinkedHashMap<String, Double> H,
+                             String uuid){
+        if (Data.containsKey(uuid)){
+            Data.get(uuid).addElement(H);
+        }
+        else {
+            Data.put(uuid, new Vector<LinkedHashMap<String,Double>>());
+            Data.get(uuid).addElement(H);
         }
     }
 
-    public void printPass(){
-        for (String[] array : PASSWORD)
-            for (String action : array)
-                System.out.println(action);
+    // Cleanup session by filtering only relevant information.
+    // Can pass in option to include offsets to incorrectly
+    // typed keys.
+    private Vector<RawEntry> filter(Vector<RawEntry> S, Boolean offset){
+        Vector<RawEntry> Filtered = new Vector<RawEntry>();
+        int counter = 0;
+        for (int i = 0; i < S.size(); ++i){
+            if (counter >= PASSWORD.length) break;
+            String key  = PASSWORD[counter][0];
+            String type = PASSWORD[counter][1];
+            RawEntry e  = S.elementAt(i);
+            if (key.equals(e.key) && type.equals(e.type)){
+                Filtered.addElement(e);
+                counter++;
+            }
+        }
+        // Skip user session with missing data points by
+        // returning empty vector
+        if (counter != PASSWORD.length){
+            Filtered.clear();
+        }
+        return Filtered;
     }
+
+    private void holdtime(LinkedHashMap<String, Double> H, Vector<RawEntry> Filtered){
+        int item = 0;
+        double mean = 0;
+        for (int i = 0; i < Filtered.size()-1; i+=2){
+            RawEntry e1 = Filtered.elementAt(i);
+            RawEntry e2 = Filtered.elementAt(i+1);
+            double value = e2.actiontime-e1.actiontime;
+            mean+=value;
+            H.put("holdtime"+ ++item,value);
+        }
+        if (item!=0)
+            H.put("meanholdtime",mean/item);
+    }
+
+    private void downdown(LinkedHashMap<String, Double> H, Vector<RawEntry> Filtered){
+        int item = 0;
+        for (int i = 0; i < Filtered.size()-2; i+=2){
+            RawEntry e1 = Filtered.elementAt(i);
+            RawEntry e2 = Filtered.elementAt(i+2);
+            H.put("downdown"+ ++item,e2.actiontime-e1.actiontime);
+        }
+    }
+
+    private void updown(LinkedHashMap<String, Double> H, Vector<RawEntry> Filtered){
+        int item = 0;
+        for (int i = 1; i < Filtered.size()-2; i+=2){
+            RawEntry e1 = Filtered.elementAt(i);
+            RawEntry e2 = Filtered.elementAt(i+1);
+            H.put("updown"+ ++item,e2.actiontime-e1.actiontime);
+        }
+    }
+
+    private void pressure(LinkedHashMap<String, Double> H, Vector<RawEntry> Filtered){
+        int item = 0;
+        double mean = 0;
+        for (int i = 0; i < Filtered.size()-1; i+=2){
+            RawEntry e = Filtered.elementAt(i);
+            mean+=e.touch_pressure;
+            H.put("pressure"+ ++item,e.touch_pressure);
+        }
+        if (item!=0)
+            H.put("meanpressure",mean/item);
+        
+    }
+    
+    private void fingerarea(LinkedHashMap<String, Double> H, Vector<RawEntry> Filtered){
+        int item = 0;
+        double mean = 0;
+        for (int i = 0; i < Filtered.size()-1; i+=2){
+            RawEntry e = Filtered.elementAt(i);
+            mean+=e.touch_size;
+            H.put("fingerarea"+ ++item,e.touch_size);
+        }
+        if (item!=0)
+            H.put("meanfingerarea",mean/item);        
+    }
+
+    private void writeToArff(LinkedHashMap<String, Vector<LinkedHashMap<String,Double>>> Data,
+                             String filename){
+        System.out.println("Writing out to " + filename + ".arff");
+
+    }
+
+    
 
     public static void main(String[] args){
         WekaArff db = new WekaArff();
         db.connect();
         db.createTableIfNotExist("data");
         db.formatRawData();
-        db.printPass();
         db.close();
     }
 }
