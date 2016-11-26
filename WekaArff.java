@@ -160,6 +160,9 @@ public class WekaArff {
                 }
                 // LinkedHashMap keeps order of insertion
                 LinkedHashMap<String, Double> H = new LinkedHashMap<String, Double>();
+
+                // Filter the results with offset times for incorrectly typed keys
+                // by passing true
                 ArrayList<RawEntry> Filtered = filter(S, true);
 
                 // Skip corrupted session data
@@ -214,10 +217,10 @@ public class WekaArff {
                 }
                 if (key.equals(e.key) && type.equals(e.type)){
                     o_val+=e.actiontime-S.get(i-o_cnt).actiontime;
+                    o_cnt = 0;
                     e.actiontime-=o_val;
                     Filtered.add(e);
                     counter++;
-                    o_cnt = 0;
                 }
             }
         }
