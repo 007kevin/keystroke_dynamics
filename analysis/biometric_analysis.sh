@@ -14,7 +14,7 @@ while getopts ":t:" opt; do
            ;;
     esac
 done
-java -cp $CLASSPATH "$@" -threshold-file $TFILE -threshold-label "1"
+java -cp $CLASSPATH "$@" -threshold-file $TFILE -threshold-label "85"
 
 
 
