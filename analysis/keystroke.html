@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Keystroke dynamics on Android platform </title>
+        <link rel="icon" href="http://www.ms.sapientia.ro/~manyi/favicon3.ico" type="image/ico">
+        <link rel="shortcut icon" href="http://www.ms.sapientia.ro/~manyi/favicon3.ico">
+
+        <STYLE type="text/css">
+            th
+            {
+                text-align:left;
+            } 
+        </STYLE>
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="keywords" content="biometrics, identification, authentication, keystroke, touchscreen, android, one-class, two-class ">
+    </head>
+    <body>
+        <h1> Keystroke Dynamics - Android platform </h1>
+        <hr>
+
+
+        <div><h3>Data collection</h3></div>
+        <ul>
+
+            <li> Number of subjects: 42 (24 male, 18 female)</li>
+            <li> Password: <CODE>.tie5Roanl</CODE> </li>
+            <li> Keys: <CODE>. t i e [123?] 5 [abc] [Shift] R [Shift] o a n l</CODE> </li>
+
+            <li> Number of samples/subject: 51 </li>
+            <li> Number of sessions: at least 2 sessions/user </li>
+            <li> Devices: <b>37 subjects</b> - Nexus 7 tablet, <b> 5 subjects</b> - Mobil LG Optimus L7 II P710 (user ids: 6, 7, 8, 9, 10) </li>
+        </ul>
+
+
+        <div><h3>Feature extraction</h3></div>
+
+        <table>
+            <tr>
+                <th> Feature name</th><th>Explanation</th><th>Number of features</th>
+            </tr>
+            <tr>
+                <td>Key hold  time (H)</td> <td>Time between key press and release</td><td>14</td>
+            </tr>
+            <tr>
+                <td>Down-down time (DD)</td> <td>Time between consecutive key presses</td><td>13</td>
+            </tr>
+            <tr>
+                <td>Up-down  time (UD)</td> <td>Time between key release and next key press</td><td>13</td>
+            </tr>
+            <tr>
+
+                <td>Key press pressure (P)</td> <td>Pressure at the moment of key press</td><td>14</td>
+            </tr>
+            <tr>
+
+                <td>Finger area (FA)</td> <td>Finger area at the moment of key press</td><td>14</td>
+            </tr>
+            <tr>
+
+                <td>Average hold time (AH)</td> <td>Average of key hold times</td><td>1</td>
+            </tr>
+            <tr>
+
+                <td>Average finger area (AFA)</td> <td>Average of finger areas</td><td>1</td>
+            </tr>
+            <tr>
+
+                <td>Average pressure (AP)</td> <td>Average of key pressures</td><td>1</td>
+            </tr>
+
+        </table>
+        <div><h3>Datasets (WEKA ARF, samples for each user are in chronological order, INTER-ENG 2014)</h3></div>
+        <ul>
+            <li><a href ="keystroke/keystroke_41features.arff">dataset1: User identity classification (42 users, 51 input patterns/user, 41 features/input pattern)</a></li>
+            <li><a href ="keystroke/keystroke_71features.arff">dataset2: User identity classification (42 users, 51 input patterns/user, 71 features/input pattern)</a></li>
+        </ul>
+
+
+        <div><h3>Datasets (WEKA ARF, samples for each user are in chronological order, normalized, CSCS 2015)</h3></div>
+        <ul>
+            <li><a href ="keystroke/keystroke_normalized.arff">dataset1: 42 users, 51 samples/user, 71 features/sample</a></li>
+            <li><a href ="keystroke/keystroke_14hold3means.arff">dataset2: 42 users, 51 samples/user, 17 features/sample</a></li>
+            <li><a href ="keystroke/keystroke_3means.arff">dataset3: 42 users, 51 samples/user, 3 features/sample</a></li>
+
+        </ul>
+
+        <div><h3>Android app for data collection </h3></div>
+
+        <table>
+            <tr>
+                <td><img src="keystroke/login2.png" width ="200" /></td>
+                <td><img src="keystroke/registration.png" width ="200"/></td>
+                <td><img src="keystroke/capslock.png" width ="200"/></td>
+                <td><img src="keystroke/numbers.png" width ="200"/></td>
+            </tr>        
+        </table>
+        <div><h3> Results </h3></div>
+        <table>
+            <tr>
+                <td><img src="keystroke/DETcolor41features.png" width ="400" /> </td>
+                <td><img src="keystroke/DETcolor71features.png" width ="400" /></td>
+            </tr>
+        </table>
+
+        <div><h3> Publications </h3></div>
+        <ul>
+            <li>Margit ANTAL, L&aacute;szl&oacute; Zsolt SZAB&Oacute; (2015), An evaluation of one-class and two-class classification algorithms for keystroke dynamics authentication on mobile devices, 
+                Proceedings of the 20th International Conference on Control Systems and Computer Science, 
+                27-29 MAY 2015, Faculty of Automatic Control and Computers, University "Politehnica" of Bucharest,
+                Romania, CSCS20, pp. 343-350. 
+                <a href="http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=7168452&punumber%3D7158222%26filter%3DAND(p_IS_Number%3A7168393)%26pageNumber%3D3">[Link]</a>   
+             
+
+            </li>
+            <li>Margit ANTAL, L&aacute;szl&oacute; Zsolt SZAB&Oacute;, Izabella LASZLO (2014), Keystroke Dynamics on Android Platform, Proceedings of the 8th 
+                International Conference Interdisciplinarity in Engineering, INTER-ENG 2014, 9-10 October 2014, Tirgu Mures, Romania, pp. 820-826.
+                <a href="http://ac.els-cdn.com/S221201731500119X/1-s2.0-S221201731500119X-main.pdf?_tid=8af81762-db8c-11e4-a1b1-00000aab0f6b&acdnat=1428235920_ed30ba77213290a0307570484a1e5063">[Link]</a>
+                <a href="research/KeyStrokeDynamicsPaperFinal.pdf">[Paper]</a>
+                <a href="research/intereng2014.pdf">[Presentation]</a>
+             
+            </li>
+            <li>ANTAL Margit, L&aacute;szl&oacute; Zsolt SZAB&Oacute;, LASZLO Izabella (2014), Billentyuzesi ritmus alapu azonositas es hitelesites erintokepernyos mobileszkozokon, 
+                XXIV. Nemzetkozi szamitastechnika es oktatasi konferencia, SZAMOKT, 2014. oktober 9-12., Szekelyudvarhely, Romania, pp. 131-136.
+                <a href="research/Szamokt2014BillentyuzesiRitmus.pdf">[Paper]</a>
+                <a href="research/AMszamokt2014.pdf">[Presentation]</a>
+            </li>
+
+        </ul>
+
+
+
+    </body>
+</html>
