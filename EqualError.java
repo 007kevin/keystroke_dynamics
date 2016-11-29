@@ -6,7 +6,6 @@ import weka.classifiers.Evaluation;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.trees.*;
 import weka.classifiers.bayes.*;
-
 import java.util.Random;
 import java.util.Enumeration;
 import java.io.File;
@@ -47,6 +46,53 @@ public class EqualError {
         }
         return r;
     }
+
+    public static Instances addTotalTime(Instances orig){
+        // create return object wih modified data of original
+        Instances r = new Instances(orig);
+        r.insertAttributeAt(new Attribute("totaltime"),r.numAttributes()-1);
+
+        // Sum of these values will equate to total time 
+        String[] A = {
+            "holdtime1",
+            "holdtime2",
+            "holdtime3",
+            "holdtime4",
+            "holdtime5",
+            "holdtime6",
+            "holdtime7",
+            "holdtime8",
+            "holdtime9",
+            "holdtime10",
+            "holdtime11",
+            "holdtime12",
+            "holdtime13",
+            "holdtime14",
+            "updown1",
+            "updown2",
+            "updown3",
+            "updown4",
+            "updown5",
+            "updown6",
+            "updown7",
+            "updown8",
+            "updown9",
+            "updown10",
+            "updown11",
+            "updown12",
+            "updown13"
+        };
+        
+        for (Enumeration<Instance> e = r.enumerateInstances(); e.hasMoreElements();){
+            Instance d = e.nextElement();
+            int tt = 0;
+            for (int i = 0; i < A.length; ++i){
+                tt+=d.value(r.attribute(A[i]));
+            }
+            d.setValue(r.attribute("totaltime"),tt);
+        }
+        return r;
+    }
     
     public static void main(String[] args){
         double MEAN_EER = 0;
@@ -57,9 +103,11 @@ public class EqualError {
             RCaller caller;
             RCode code;
             
-            // Instances data = DataSource.read("./analysis/keystroke_71features.arff");
+             // Instances data = DataSource.read("./analysis/keystroke_71features.arff");
             Instances orig = DataSource.read("analysis/keystroke_71features.arff");
-            Instances data = squareValues(orig);
+            // Instances data = squareValues(orig);
+            // Instances data = addTotalTime(orig);
+            Instances data = squareValues(addTotalTime(orig));
             
             data.setClassIndex(data.numAttributes()-1);
             Evaluation eval = new Evaluation(data);
