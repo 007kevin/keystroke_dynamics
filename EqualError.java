@@ -22,18 +22,10 @@ public class EqualError {
         // names of target attributes to square.
         // square only the times for distance of travel between keys
         String[] A = {
-            "updown1",
-            "updown2",
-            "updown3",
-            "updown4",
-            "updown5",
-            "updown6",
-            "updown7",
-            "updown8",
-            "updown9",
-            "updown10",
-            "updown11",
-            "updown12",
+            "updown1",  "updown2",  "updown3", 
+            "updown4",  "updown5",  "updown6", 
+            "updown7",  "updown8",  "updown9", 
+            "updown10", "updown11", "updown12",
             "updown13"
         };
         
@@ -54,33 +46,15 @@ public class EqualError {
 
         // Sum of these values will equate to total time 
         String[] A = {
-            "holdtime1",
-            "holdtime2",
-            "holdtime3",
-            "holdtime4",
-            "holdtime5",
-            "holdtime6",
-            "holdtime7",
-            "holdtime8",
-            "holdtime9",
-            "holdtime10",
-            "holdtime11",
-            "holdtime12",
-            "holdtime13",
-            "holdtime14",
-            "updown1",
-            "updown2",
-            "updown3",
-            "updown4",
-            "updown5",
-            "updown6",
-            "updown7",
-            "updown8",
-            "updown9",
-            "updown10",
-            "updown11",
-            "updown12",
-            "updown13"
+            "holdtime1",  "holdtime2",  "holdtime3", 
+            "holdtime4",  "holdtime5",  "holdtime6", 
+            "holdtime7",  "holdtime8",  "holdtime9", 
+            "holdtime10", "holdtime11", "holdtime12",
+            "holdtime13", "holdtime14", "updown1",   
+            "updown2",    "updown3",    "updown4",   
+            "updown5",    "updown6",    "updown7",   
+            "updown8",    "updown9",    "updown10",  
+            "updown11",   "updown12",   "updown13"
         };
         
         for (Enumeration<Instance> e = r.enumerateInstances(); e.hasMoreElements();){
