@@ -1,5 +1,6 @@
 import weka.core.Attribute;
 import weka.core.Instances;
+import weka.core.Instance;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.classifiers.Evaluation;
 import weka.classifiers.evaluation.ThresholdCurve;
@@ -7,6 +8,7 @@ import weka.classifiers.trees.*;
 import weka.classifiers.bayes.*;
 
 import java.util.Random;
+import java.util.Enumeration;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -14,6 +16,38 @@ import java.io.IOException;
 import com.github.rcaller.rstuff.*;
 
 public class EqualError {
+    public static Instances squareValues(Instances orig){
+        // create return object wih modified data of original
+        Instances r = new Instances(orig);
+        
+        // names of target attributes to square.
+        // square only the times for distance of travel between keys
+        String[] A = {
+            "updown1",
+            "updown2",
+            "updown3",
+            "updown4",
+            "updown5",
+            "updown6",
+            "updown7",
+            "updown8",
+            "updown9",
+            "updown10",
+            "updown11",
+            "updown12",
+            "updown13"
+        };
+        
+        for (Enumeration<Instance> e = r.enumerateInstances(); e.hasMoreElements();){
+            Instance d = e.nextElement();
+            for (int i = 0; i < A.length; ++i){
+                Attribute a = r.attribute(A[i]);
+                d.setValue(a,d.value(a)*d.value(a));
+            }
+        }
+        return r;
+    }
+    
     public static void main(String[] args){
         double MEAN_EER = 0;
         try {
@@ -24,11 +58,12 @@ public class EqualError {
             RCode code;
             
             // Instances data = DataSource.read("./analysis/keystroke_71features.arff");
-            Instances data = DataSource.read("logicalstrong_secondorder.arff");
+            Instances orig = DataSource.read("analysis/keystroke_71features.arff");
+            Instances data = squareValues(orig);
             
             data.setClassIndex(data.numAttributes()-1);
             Evaluation eval = new Evaluation(data);
-            BayesNet classifier = new BayesNet();
+            RandomForest classifier = new RandomForest();
             eval.crossValidateModel(classifier, data, 10, new Random(1));
             ThresholdCurve tc = new ThresholdCurve();
             Attribute labels = data.attribute(data.numAttributes()-1);
@@ -50,10 +85,10 @@ public class EqualError {
                               "function(x) 1 - x)");
                 code.addRCode("data = arff[,c(\"False Negative Rate\"," +
                               "\"False Positive Rate\",\"Threshold\")]");
-                //                code.addRCode("data = rbind(data,c(1,0,1))");
-                code.addRCode("f = splinefun(x=data[,c(\"Threshold\")]," +
+                code.addRCode("data = rbind(data,c(1,0,1))");
+                code.addRCode("f = approxfun(x=data[,c(\"Threshold\")]," +
                               "y=data[,c(\"False Negative Rate\")])");
-                code.addRCode("g = splinefun(x=data[,c(\"Threshold\")]," +
+                code.addRCode("g = approxfun(x=data[,c(\"Threshold\")]," +
                               "y=data[,c(\"False Positive Rate\")])");
                 code.addRCode("res = uniroot(function(x) f(x)-g(x),interval = c(0,1))");
                 code.addRCode("eer = f(res[\"root\"])");                
@@ -63,9 +98,9 @@ public class EqualError {
                 double[] eer = caller.getParser().getAsDoubleArray("eer");
                 // R code end
                 
-                //System.out.println(eer[0]);
                 MEAN_EER+=eer[0];
             }
+            System.out.println(eval.toSummaryString("\nResults\n\n", false));
             System.out.println("Mean EER: " + MEAN_EER/labels.numValues());
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
