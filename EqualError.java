@@ -9,6 +9,7 @@ import weka.classifiers.trees.*;
 import weka.classifiers.bayes.*;
 import java.util.Random;
 import java.util.Enumeration;
+import java.util.ArrayList;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -70,7 +71,9 @@ public class EqualError {
     }
 
     public static void runExperiment(Classifier classifier, Instances data){
-        double MEAN_EER = 0;
+        ArrayList<Double> EER = new ArrayList<Double>();
+        double EER_MEAN = 0; // mean of EER values
+        double EER_SD  = 0; // standard deviation of EER values
         try {
             File f = File.createTempFile("rcallertmp",".tmp");
             FileWriter writer;
@@ -81,7 +84,7 @@ public class EqualError {
             data.setClassIndex(data.numAttributes()-1);
             Evaluation eval = new Evaluation(data);
             
-            eval.crossValidateModel(classifier, data, 10, new Random(7));
+            eval.crossValidateModel(classifier, data, 10, new Random(1));
             ThresholdCurve tc = new ThresholdCurve();
             Attribute labels = data.attribute(data.numAttributes()-1);
             for (int i = 0; i < labels.numValues(); ++i){
@@ -114,11 +117,19 @@ public class EqualError {
                 
                 double[] eer = caller.getParser().getAsDoubleArray("eer");
                 // R code end
-                
-                MEAN_EER+=eer[0];
+                EER.add(eer[0]);
+                EER_MEAN+=eer[0];
             }
+            EER_MEAN/=EER.size();
+            for (int i = 0; i < EER.size(); ++i)
+                EER_SD+=(EER.get(i)-EER_MEAN)*(EER.get(i)-EER_MEAN);
+            EER_SD/=EER.size();
+            EER_SD = Math.sqrt(EER_SD);
+            
             System.out.println(eval.toSummaryString("\nResults\n\n", false));
-            System.out.println("Mean EER: " + MEAN_EER/labels.numValues());
+            System.out.println("Mean EER\t\t: " + EER_MEAN);
+            System.out.println("Standard Deviation\t: " + EER_SD);            
+            
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
@@ -127,32 +138,31 @@ public class EqualError {
     public static void main(String[] args){
         try {
         Instances data = DataSource.read("./analysis/keystroke_71features.arff");
-        // System.out.println("**********************************************");
-        // System.out.println("RandomForest (10 fold cv) w/original data set");        
-        // runExperiment(new RandomForest(),data);
-        // System.out.println("**********************************************");
-        // System.out.println("RandomForest (10 fold cv) w/ square distance data set");        
-        // runExperiment(new RandomForest(),squareValues(data));
-        // System.out.println("**********************************************");
-        // System.out.println("RandomForest (10 fold cv) w/ total time attribute data set");
-        // runExperiment(new RandomForest(),addTotalTime(data));
-        // System.out.println("**********************************************");        
-        // System.out.println("RandomForest (10 fold cv) w/ total time && squared data set");
-        // runExperiment(new RandomForest(),squareValues(addTotalTime(data)));
-
-        
         System.out.println("**********************************************");
-        System.out.println("BayesNet (10 fold cv) w/original data set");        
-        runExperiment(new BayesNet(),data);
+        System.out.println("RandomForest (10 fold cv) w/original data set");        
+        runExperiment(new RandomForest(),data);
         System.out.println("**********************************************");
-        System.out.println("BayesNet (10 fold cv) w/ square distance data set");        
-        runExperiment(new BayesNet(),squareValues(data));
+        System.out.println("RandomForest (10 fold cv) w/ square distance data set");
+        runExperiment(new RandomForest(),squareValues(data));
         System.out.println("**********************************************");
-        System.out.println("BayesNet (10 fold cv) w/ total time attribute data set");
-        runExperiment(new BayesNet(),addTotalTime(data));
+        System.out.println("RandomForest (10 fold cv) w/ total time attribute data set");
+        runExperiment(new RandomForest(),addTotalTime(data));
         System.out.println("**********************************************");        
-        System.out.println("BayesNet (10 fold cv) w/ total time && squared data set");
-        runExperiment(new BayesNet(),squareValues(addTotalTime(data)));
+        System.out.println("RandomForest (10 fold cv) w/ total time && squared data set");
+        runExperiment(new RandomForest(),squareValues(addTotalTime(data)));
+
+        // System.out.println("**********************************************");
+        // System.out.println("BayesNet (10 fold cv) w/original data set");        
+        // runExperiment(new BayesNet(),data);
+        // System.out.println("**********************************************");
+        // System.out.println("BayesNet (10 fold cv) w/ square distance data set");        
+        // runExperiment(new BayesNet(),squareValues(data));
+        // System.out.println("**********************************************");
+        // System.out.println("BayesNet (10 fold cv) w/ total time attribute data set");
+        // runExperiment(new BayesNet(),addTotalTime(data));
+        // System.out.println("**********************************************");        
+        // System.out.println("BayesNet (10 fold cv) w/ total time && squared data set");
+        // runExperiment(new BayesNet(),squareValues(addTotalTime(data)));
 
         } catch (Exception ex){
             System.out.println(ex.getMessage());
