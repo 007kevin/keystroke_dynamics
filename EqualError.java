@@ -7,6 +7,8 @@ import weka.classifiers.Classifier;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.trees.*;
 import weka.classifiers.bayes.*;
+import weka.filters.unsupervised.attribute.Remove;
+import weka.filters.Filter;
 import java.util.Random;
 import java.util.Enumeration;
 import java.util.ArrayList;
@@ -17,6 +19,31 @@ import java.io.IOException;
 import com.github.rcaller.rstuff.*;
 
 public class EqualError {
+    public static Instances filter_BNet(Instances orig) throws Exception {
+        // Attributes to keep in instances
+        int[] indices = {0,1,2,3,4,5,6,8,9,10,11,12,13,15,16,17,18,20,21,22,24,25,26,27,28,29,31,32,33,34,35,36,37,39,40,42,44,45,46,48,50,51,53,54,55,56,57,58,59,60,61,62,63,64,65,67,68,69,70,71};
+        Remove remove = new Remove();
+		remove.setAttributeIndicesArray(indices);
+		remove.setInvertSelection(true);
+		remove.setInputFormat(orig);
+		return Filter.useFilter(orig, remove);
+    }
+
+    
+    public static Instances filter_NB(Instances orig) throws Exception {
+        // Attributes to keep in instances
+        int[] indices = {0,1,2,3,4,5,6,9,10,
+                         11,12,15,22,24,28,34
+                         ,38,40,42,45,46,47,48
+                         ,51,52,53,54,55,58,59,
+                         60,61,63,65,66,68,69,70,71};
+        Remove remove = new Remove();
+		remove.setAttributeIndicesArray(indices);
+		remove.setInvertSelection(true);
+		remove.setInputFormat(orig);
+		return Filter.useFilter(orig, remove);
+    }
+
     public static Instances squareValues(Instances orig){
         // create return object wih modified data of original
         Instances r = new Instances(orig);
@@ -138,18 +165,18 @@ public class EqualError {
     public static void main(String[] args){
         try {
         Instances data = DataSource.read("./analysis/keystroke_71features.arff");
-        System.out.println("**********************************************");
-        System.out.println("RandomForest (10 fold cv) w/original data set");        
-        runExperiment(new RandomForest(),data);
-        System.out.println("**********************************************");
-        System.out.println("RandomForest (10 fold cv) w/ square distance data set");
-        runExperiment(new RandomForest(),squareValues(data));
-        System.out.println("**********************************************");
-        System.out.println("RandomForest (10 fold cv) w/ total time attribute data set");
-        runExperiment(new RandomForest(),addTotalTime(data));
-        System.out.println("**********************************************");        
-        System.out.println("RandomForest (10 fold cv) w/ total time && squared data set");
-        runExperiment(new RandomForest(),squareValues(addTotalTime(data)));
+        // System.out.println("**********************************************");
+        // System.out.println("RandomForest (10 fold cv) w/original data set");        
+        // runExperiment(new RandomForest(),data);
+        // System.out.println("**********************************************");
+        // System.out.println("RandomForest (10 fold cv) w/ square distance data set");
+        // runExperiment(new RandomForest(),squareValues(data));
+        // System.out.println("**********************************************");
+        // System.out.println("RandomForest (10 fold cv) w/ total time attribute data set");
+        // runExperiment(new RandomForest(),addTotalTime(data));
+        // System.out.println("**********************************************");        
+        // System.out.println("RandomForest (10 fold cv) w/ total time && squared data set");
+        // runExperiment(new RandomForest(),squareValues(addTotalTime(data)));
 
         // System.out.println("**********************************************");
         // System.out.println("BayesNet (10 fold cv) w/original data set");        
@@ -164,6 +191,58 @@ public class EqualError {
         // System.out.println("BayesNet (10 fold cv) w/ total time && squared data set");
         // runExperiment(new BayesNet(),squareValues(addTotalTime(data)));
 
+        // System.out.println("**********************************************");
+        // System.out.println("NaiveBayes (10 fold cv) w/original data set");        
+        // runExperiment(new NaiveBayes(),data);
+        // System.out.println("**********************************************");
+        // System.out.println("NaiveBayes (10 fold cv) w/ filtered dataset");        
+        // runExperiment(new NaiveBayes(),filter_NB(data));
+        // System.out.println("**********************************************");        
+
+        // Int[] indices = {0,1,2,3,4,5,6,9,10,
+        //                  11,12,15,22,24,28,34
+        //                  ,38,40,42,45,46,47,48
+        //                  ,51,52,53,54,55,58,59,
+        //                  60,61,63,65,66,68,69,70,71};
+        // System.out.println("Redundant attributes: ");
+        // for (int i = 0; i < data.numAttributes(); ++i){
+        //     Boolean print = true;
+        //     for (int j = 0; j < indices.length; ++j){
+        //         if (indices[j] == i){
+        //             print = false;
+        //             break;
+        //         }
+        //     }
+        //     if (print){
+        //         System.out.println(data.attribute(i));
+        //     }
+        // }
+            
+        System.out.println("**********************************************");
+        System.out.println("RandomForest (10 fold cv) w/original data set");        
+        runExperiment(new RandomForest(),data);
+        System.out.println("**********************************************");
+        System.out.println("RandomForest (10 fold cv) w/ filtered dataset");        
+        runExperiment(new RandomForest(),filter_BNet(data));
+        System.out.println("**********************************************");        
+
+        int[] indices = {0,1,2,3,4,5,6,8,9,10,11,12,13,15,16,17,18,20,21,22,24,25,26,27,28,29,31,32,33,34,35,36,37,39,40,42,44,45,46,48,50,51,53,54,55,56,57,58,59,60,61,62,63,64,65,67,68,69,70,71};
+        System.out.println("Redundant attributes: ");
+        for (int i = 0; i < data.numAttributes(); ++i){
+            Boolean print = true;
+            for (int j = 0; j < indices.length; ++j){
+                if (indices[j] == i){
+                    print = false;
+                    break;
+                }
+            }
+            if (print){
+                System.out.println(data.attribute(i));
+            }
+        }
+            
+            
+        
         } catch (Exception ex){
             System.out.println(ex.getMessage());
         }

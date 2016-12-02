@@ -1,0 +1,68 @@
+**********************************************
+NaiveBayes (10 fold cv) w/original data set
+
+Results
+
+
+Correctly Classified Instances        1693               79.0383 %
+Incorrectly Classified Instances       449               20.9617 %
+Kappa statistic                          0.7853
+Mean absolute error                      0.0101
+Root mean squared error                  0.0966
+Relative absolute error                 21.721  %
+Root relative squared error             63.3589 %
+Total Number of Instances             2142     
+
+Mean EER		: 0.12410427020055109
+Standard Deviation	: 0.049936615939697
+**********************************************
+NaiveBayes (10 fold cv) w/ filtered dataset
+
+Results
+
+
+Correctly Classified Instances        1805               84.267  %
+Incorrectly Classified Instances       337               15.733  %
+Kappa statistic                          0.8388
+Mean absolute error                      0.0079
+Root mean squared error                  0.0815
+Relative absolute error                 16.9273 %
+Root relative squared error             53.4872 %
+Total Number of Instances             2142     
+
+Mean EER		: 0.07432739112377758
+Standard Deviation	: 0.05243381948941308
+Redundant attributes: 
+@attribute holdtime8 numeric
+@attribute holdtime9 numeric
+@attribute holdtime14 numeric
+@attribute downdown1 numeric
+@attribute downdown3 numeric
+@attribute downdown4 numeric
+@attribute downdown5 numeric
+@attribute downdown6 numeric
+@attribute downdown7 numeric
+@attribute downdown8 numeric
+@attribute downdown10 numeric
+@attribute downdown12 numeric
+@attribute downdown13 numeric
+@attribute updown1 numeric
+@attribute updown3 numeric
+@attribute updown4 numeric
+@attribute updown5 numeric
+@attribute updown6 numeric
+@attribute updown7 numeric
+@attribute updown9 numeric
+@attribute updown10 numeric
+@attribute updown11 numeric
+@attribute updown13 numeric
+@attribute pressure2 numeric
+@attribute pressure4 numeric
+@attribute pressure5 numeric
+@attribute pressure10 numeric
+@attribute pressure11 numeric
+@attribute fingerarea3 numeric
+@attribute fingerarea4 numeric
+@attribute fingerarea9 numeric
+@attribute fingerarea11 numeric
+@attribute fingerarea14 numeric
